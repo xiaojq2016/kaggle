@@ -1,3 +1,6 @@
+#问题描述
+#https://www.kaggle.com/c/titanic
+
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
@@ -134,4 +137,4 @@ dot_data = tree.export_graphviz(dec_clf, out_file=None,
                                 filled=True, rounded=True,
                                 special_characters=True)
 graph = pydotplus.graph_from_dot_data(dot_data)
-graph.write_pdf("1.pdf")
+graph.write_pdf("0.pdf")
