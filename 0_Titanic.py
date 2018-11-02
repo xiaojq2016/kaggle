@@ -14,9 +14,9 @@ train_df = pd.read_csv("C:\\Users\\Ben\\Desktop\\all\\train.csv")
 test_df = pd.read_csv("C:\\Users\\Ben\\Desktop\\all\\test.csv")
 
 #Data Analysis
-print(train_df.describe())
-#print(train_df.head(5))
-print(train_df.isnull().sum())
+# print(train_df.describe())
+# #print(train_df.head(5))
+# print(train_df.isnull().sum())
 
 #Data preprocessing
 dataset = [train_df,test_df]
@@ -112,11 +112,17 @@ for data in dataset:
     data.loc[data['relatives'] == 0,'not_alone'] = 1
     data['not_alone'] = data['not_alone'].astype(int)
 
-y_train = train_df['Survived']
+
 x_train = train_df.drop(['Survived'], 1)
+y_train = train_df['Survived']
 x_test = test_df
 
 #Random Forest
 clf = RandomForestClassifier(max_depth=14, min_samples_leaf=2, n_estimators=100)
 clf.fit(x_train, y_train)
 print(clf.score(x_train, y_train))
+
+#Decision tree
+dec_clf = DecisionTreeClassifier()
+dec_clf.fit(x_train, y_train)
+print(dec_clf.score(x_train, y_train))
