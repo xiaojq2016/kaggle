@@ -45,6 +45,7 @@ for data in dataset:
 
 train_df = train_df.drop(['Name'], 1)
 test_df = test_df.drop(['Name'], 1)
+
 ports = {"S":1,"C":2,"Q":3}
 dataset = [train_df,test_df]
 
@@ -71,31 +72,31 @@ for data in dataset:
     age_slice[np.isnan(age_slice)] = rand_age
     data['Age'] = age_slice
     data['Age'] = data.Age.astype(int)
-    #train_data['Age'] = train_data.Age.astype(int)
+    # train_data['Age'] = train_data.Age.astype(int)
+
+dataset = [train_df,test_df]
+
+# for data in dataset:
+#     data.loc[ data['Age'] <= 11, 'Age'] = 0
+#     data.loc[ (data['Age'] >11) & (data['Age']<=18),'Age'] = 1
+#     data.loc[ (data['Age'] >18) & (data['Age']<=22),'Age'] = 2
+#     data.loc[ (data['Age'] >22) & (data['Age']<=27),'Age'] = 3
+#     data.loc[ (data['Age'] >27) & (data['Age']<=33),'Age'] = 4
+#     data.loc[ (data['Age'] >33) & (data['Age']<=40),'Age'] = 5
+#     data.loc[ (data['Age'] >40) & (data['Age']<=66),'Age'] = 6
+#     data.loc[ data['Age'] >66 ,'Age'] = 7
 
 dataset = [train_df,test_df]
 
 for data in dataset:
-    data.loc[ data['Age'] <= 11, 'Age'] = 0
-    data.loc[ (data['Age'] >11) & (data['Age']<=18),'Age'] = 1
-    data.loc[ (data['Age'] >18) & (data['Age']<=22),'Age'] = 2
-    data.loc[ (data['Age'] >22) & (data['Age']<=27),'Age'] = 3
-    data.loc[ (data['Age'] >27) & (data['Age']<=33),'Age'] = 4
-    data.loc[ (data['Age'] >33) & (data['Age']<=40),'Age'] = 5
-    data.loc[ (data['Age'] >40) & (data['Age']<=66),'Age'] = 6
-    data.loc[ data['Age'] >66 ,'Age'] = 7
-
-dataset = [train_df,test_df]
-
-for data in dataset:
-    data.loc[ data['Fare'] <= 7.91 , 'Fare'] = 0
-    data.loc[ (data['Fare'] > 7.91) & (data['Fare'] <= 14.454) , 'Fare'] = 1
-    data.loc[ (data['Fare'] > 14.454) & (data['Fare'] <= 31.00) , 'Fare'] = 2
-    data.loc[ (data['Fare'] > 31.00) & (data['Fare'] <= 100) , 'Fare'] = 3
-    data.loc[ (data['Fare'] > 100) & (data['Fare'] <= 250) , 'Fare'] = 4
-    data.loc[ data['Fare'] > 250 , 'Fare'] = 5
-    data['Fare'] = data['Fare'].fillna(0)
-    data['Fare'] = data.Fare.astype(int)
+    # data.loc[ data['Fare'] <= 7.91 , 'Fare'] = 0
+    # data.loc[ (data['Fare'] > 7.91) & (data['Fare'] <= 14.454) , 'Fare'] = 1
+    # data.loc[ (data['Fare'] > 14.454) & (data['Fare'] <= 31.00) , 'Fare'] = 2
+    # data.loc[ (data['Fare'] > 31.00) & (data['Fare'] <= 100) , 'Fare'] = 3
+    # data.loc[ (data['Fare'] > 100) & (data['Fare'] <= 250) , 'Fare'] = 4
+    # data.loc[ data['Fare'] > 250 , 'Fare'] = 5
+    data['Fare'] = data['Fare'].fillna(-1)
+    data['Fare'] = data.Fare.astype(float)
 
 train_df = train_df.drop(['Ticket'], 1)
 test_df = test_df.drop(['Ticket'], 1)
@@ -110,3 +111,12 @@ for data in dataset:
     data.loc[data['relatives']>0,'not_alone'] = 0
     data.loc[data['relatives'] == 0,'not_alone'] = 1
     data['not_alone'] = data['not_alone'].astype(int)
+
+y_train = train_df['Survived']
+x_train = train_df.drop(['Survived'], 1)
+x_test = test_df
+
+#Random Forest
+clf = RandomForestClassifier(max_depth=14, min_samples_leaf=2, n_estimators=100)
+clf.fit(x_train, y_train)
+print(clf.score(x_train, y_train))
