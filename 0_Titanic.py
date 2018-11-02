@@ -9,8 +9,8 @@ from sklearn import tree
 #load the data
 pd.set_option('display.width', None)  # 设置字符显示宽度
 pd.set_option('display.max_rows', None)  # 设置显示最大行
-train_df = pd.read_csv("C:\\Users\\Ben\\Desktop\\all\\train.csv")
-test_df = pd.read_csv("C:\\Users\\Ben\\Desktop\\all\\test.csv")
+train_df = pd.read_csv("./data/0/train.csv")
+test_df = pd.read_csv("./data/0/test.csv")
 
 #Data Analysis
 # print(train_df.describe())
@@ -122,11 +122,14 @@ x_test = test_df
 #Random Forest
 clf = RandomForestClassifier(min_samples_leaf=2, n_estimators=100)
 print(cross_val_score(clf, x_train, y_train, cv=10).mean())
+clf = clf.fit(x_train, y_train)
+clf.predict(x_test)
 
 #Decision tree
 dec_clf = DecisionTreeClassifier()
 print(cross_val_score(dec_clf, x_train, y_train, cv=10).mean())
 dec_clf = dec_clf.fit(x_train, y_train)
+dec_clf.predict(x_test)
 dot_data = tree.export_graphviz(dec_clf, out_file=None,
                                 filled=True, rounded=True,
                                 special_characters=True)
