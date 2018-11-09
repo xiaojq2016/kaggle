@@ -17,6 +17,30 @@ import pydotplus
 import matplotlib.pyplot as pyplot
 import seaborn as sns
 from sklearn import tree
+from sklearn.model_selection import KFold
+from sklearn.model_selection import train_test_split
+
+
+def get_stacking(clf, x_train, y_train, x_test, n_folds=10):
+    # 这个函数是stacking的核心，使用交叉验证的方法得到次级训练集
+    # x_train, y_train, x_test 的值应该为numpy里面的数组类型 numpy.ndarray .
+    # 如果输入为pandas的DataFrame类型则会把报错
+    train_num, test_num = x_train.shape[0], x_test.shape[0]
+    second_level_train_set = np.zeros((train_num,))
+    second_level_test_set = np.zeros((test_num,))
+    test_nfolds_sets = np.zeros((test_num, n_folds))
+    kf = KFold(n_splits=n_folds)
+
+    for i, (train_index, test_index) in enumerate(kf.split(x_train)):
+        x_tra, y_tra = x_train[train_index], y_train[train_index]
+        x_tst, y_tst = x_train[test_index], y_train[test_index]
+        clf.fit(x_tra, y_tra)
+        second_level_train_set[test_index] = clf.predict(x_tst)
+        test_nfolds_sets[:, i] = clf.predict(x_test)
+
+    second_level_test_set[:] = test_nfolds_sets.mean(axis=1)
+    return second_level_train_set, second_level_test_set
+
 
 # load the data
 pd.set_option('display.width', None)  # 设置字符显示宽度
@@ -116,11 +140,11 @@ for data in dataset:
 result = pd.DataFrame(columns=['PassengerId', 'Survived'], index=test_df.index)
 result['PassengerId'] = test_df['PassengerId']
 
-dataset = [train_df, test_df]
-for data in dataset:
-    data['TicketNo'] = data.Ticket.str.extract('([0-9][0-9].*[0-9])', False)
-    data['TicketNo'] = data['TicketNo'].fillna(-1)
-    data['TicketNo'] = data.TicketNo.astype(int)
+# dataset = [train_df, test_df]
+# for data in dataset:
+#     data['TicketNo'] = data.Ticket.str.extract('([0-9][0-9].*[0-9])', False)
+#     data['TicketNo'] = data['TicketNo'].fillna(-1)
+#     data['TicketNo'] = data.TicketNo.astype(int)
 
 train_df = train_df.drop(['Ticket'], 1)
 test_df = test_df.drop(['Ticket'], 1)
@@ -143,7 +167,7 @@ x_test = test_df
 std = StandardScaler()
 dataset = [x_train, x_test]
 for data in dataset:
-    data['TicketNo'] = std.fit_transform(data['TicketNo'].values.reshape(-1, 1))
+    # data['TicketNo'] = std.fit_transform(data['TicketNo'].values.reshape(-1, 1))
     data['Fare'] = std.fit_transform(data['Fare'].values.reshape(-1, 1))
     data['Age'] = std.fit_transform(data['Age'].values.reshape(-1, 1))
 
@@ -200,6 +224,27 @@ clf.fit(x_train, y_train)
 res = clf.predict(x_test)
 result['Survived'] = res
 result.to_csv('data/0/vote.csv', index=False)
+
+# Stacking
+train_x, test_x, train_y, test_y = train_test_split(np.array(x_train), np.array(y_train), test_size=0.2)
+train_sets = []
+test_sets = []
+clfs = [rf_clf, lr_clf, svm_clf, knn_clf, xgb_clf]
+for clf in clfs:
+    train_set, test_set = get_stacking(clf, train_x, train_y, test_x)
+    train_sets.append(train_set)
+    test_sets.append(test_set)
+
+meta_train = np.concatenate([result_set.reshape(-1, 1) for result_set in train_sets], axis=1)
+meta_test = np.concatenate([y_test_set.reshape(-1, 1) for y_test_set in test_sets], axis=1)
+clf = LogisticRegressionCV(Cs=5, cv=10, tol=1e-7, max_iter=1000)
+clf.fit(meta_train, train_y)
+print(cross_val_score(clf, x_train, y_train, cv=10).mean())
+meta_features = np.column_stack([
+    np.column_stack([model.predict(x_test) for model in clfs]).mean(axis=1)])
+res = clf.predict(meta_features)
+result['Survived'] = res
+result.to_csv('data/0/stacking.csv', index=False)
 
 # Decision tree
 # dec_clf = DecisionTreeClassifier()
